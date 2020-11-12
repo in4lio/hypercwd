@@ -4,8 +4,25 @@ const { promisify } = require('util');
 const promiseExec = promisify(exec);
 
 const setCwd = async ({ dispatch, action, tab }) => {
-  const newCwd = await promiseExec(
-    `lsof -a -p ${tab.pid} -d cwd -Fn | tail -1 | sed 's/.//'`);
+  var newCwd = ''
+  var nnn_dir = await promiseExec(`ps eww -o command ${tab.pid} | tr ' ' '\n' | grep 'NNN_DIR'`);
+  if (nnn_dir.stdout.trim() !== '') {
+    nnn_dir = await promiseExec(`eval echo "${nnn_dir.stdout.split('=')[1].trim()}"`);
+    var path = nnn_dir.stdout.trim()
+    var fs = require('fs');
+    var os = require('os');
+    try {
+      if (fs.existsSync(path)) {
+        newCwd = fs.readFileSync(path, 'utf-8');
+      }
+    } catch(err) {
+      console.error(err)
+    }
+  }
+  if (newCwd === '') {
+    newCwd = await promiseExec(
+      `lsof -a -p ${tab.pid} -d cwd -Fn | tail -1 | sed 's/.//'`);
+  }
   // Since Node v8, return type of a promisified exec has changed: 
   // https://github.com/nodejs/node/commit/fe5ca3ff27 
   const cwd = typeof newCwd === 'string' ? newCwd.trim() : newCwd.stdout.trim();
