@@ -3,11 +3,10 @@ const { promisify } = require('util');
 
 const promiseExec = promisify(exec);
 
-const setCwd = async ({ dispatch, action, tab }) => {
+const setCwd = async ({ dispatch, action, tab, config }) => {
   var newCwd = ''
-  var nnn_dir = await promiseExec(`ps eww -o command ${tab.pid} | tr ' ' '\n' | grep 'NNN_DIR'`);
-  if (nnn_dir.stdout.trim() !== '') {
-    nnn_dir = await promiseExec(`eval echo "${nnn_dir.stdout.split('=')[1].trim()}"`);
+  if (config.env.NNN_DIR) {
+    nnn_dir = await promiseExec(`eval echo "${config.env.NNN_DIR}"`);
     var path = nnn_dir.stdout.trim()
     var fs = require('fs');
     var os = require('os');
@@ -23,8 +22,8 @@ const setCwd = async ({ dispatch, action, tab }) => {
     newCwd = await promiseExec(
       `lsof -a -p ${tab.pid} -d cwd -Fn | tail -1 | sed 's/.//'`);
   }
-  // Since Node v8, return type of a promisified exec has changed: 
-  // https://github.com/nodejs/node/commit/fe5ca3ff27 
+  // Since Node v8, return type of a promisified exec has changed:
+  // https://github.com/nodejs/node/commit/fe5ca3ff27
   const cwd = typeof newCwd === 'string' ? newCwd.trim() : newCwd.stdout.trim();
   dispatch({
     type: 'SESSION_SET_CWD',

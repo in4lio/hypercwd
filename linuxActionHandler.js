@@ -4,11 +4,12 @@ const { setCwd } = require('./setCwd');
 const fixPath = require('./fixPath');
 
 let tabs = {};
+let hypercwdConfig = {};
 
 module.exports = ({ getState, dispatch }) => next => async (action) => {
   switch (action.type) {
     case 'CONFIG_LOAD': {
-      const hypercwdConfig = configParse(action.config);
+      hypercwdConfig = configParse(action.config);
       if (hypercwdConfig.initialWorkingDirectory) {
         const initialWorkingDirectory = fixPath(hypercwdConfig.initialWorkingDirectory);
         if (initialWorkingDirectory && existsSync(initialWorkingDirectory)) {
@@ -26,7 +27,7 @@ module.exports = ({ getState, dispatch }) => next => async (action) => {
     case 'TERM_GROUP_REQUEST':
       const { sessions: { activeUid } } = getState();
       if (activeUid) {
-        await setCwd({ dispatch, action, tab: tabs[activeUid]});
+        await setCwd({ dispatch, action, tab: tabs[activeUid], config: hypercwdConfig });
       }
       break;
     case 'SESSION_ADD':
