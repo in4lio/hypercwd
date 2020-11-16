@@ -5,7 +5,7 @@ if [ ! -r "$NNN_FIFO" ] ; then
     exit 1
 fi
 
-if [[ -z "$NNN_DIR" ]]; then
+if [ -z "$NNN_DIR" ]; then
     echo "NNN_DIR is not set!" >&2
     exit 1
 fi
